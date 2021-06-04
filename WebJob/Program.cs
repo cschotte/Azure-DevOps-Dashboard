@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using WebJob.Models;
 
-namespace DevOpsWebJob
+namespace WebJob
 {
     class Program
     {
@@ -16,17 +18,29 @@ namespace DevOpsWebJob
 
         static async Task Main()
         {
+            var db = new List<DataModel>();
+
             if (string.IsNullOrWhiteSpace(azDevOpsPat) || string.IsNullOrWhiteSpace(azDevOpsPat))
-                throw new ArgumentException("Missing Azure DevOps Uri and personal-access-token");
+                throw new ArgumentException("Missing Azure DevOps Uri and personal-access-token Environment Variables");
 
             // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list
             var projects = await GetJson("/_apis/projects");
-            if (projects == null) throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
+            
+            if (null == projects)
+                throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
 
             foreach (var project in projects.value)
             {
-                Console.WriteLine();
+                var data = new DataModel
+                {
+                    ProjectId = project.id,
+                    Name = project.name,
+                    Description = project.description,
+                    Url = project.url,
+                    LastKnownActivity = project.lastUpdateTime
+                };
 
+                Console.WriteLine();
                 Console.WriteLine("project: " + project.name);
                 Console.WriteLine("last project update date: " + project.lastUpdateTime);
 
@@ -45,9 +59,13 @@ namespace DevOpsWebJob
                         Console.WriteLine("  - last commit date: " + commit.committer.date);
                     }
                 }
+
+                db.Add(data);
             }
 
-            Console.WriteLine();
+            File.WriteAllText("data.json", JsonConvert.SerializeObject(db, Formatting.Indented));
+
+            Console.WriteLine("Done.");
         }
 
         private static async Task<dynamic> GetJson(string action)
