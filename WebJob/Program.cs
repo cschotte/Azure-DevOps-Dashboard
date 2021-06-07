@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -12,16 +13,18 @@ namespace WebJob
 {
     class Program
     {
-        private static readonly HttpClient httpClient = new();
+        const string _version = "6.0-preview.1";
+
+        static readonly HttpClient _httpClient = new();
 
         // Read Azure DevOps credentials from application settings on WebJob startup
         // https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
-        private static readonly string azDevOpsPat = Environment.GetEnvironmentVariable("azDevOpsPat");
-        private static readonly string azDevOpsUri = Environment.GetEnvironmentVariable("azDevOpsUri");
+        static readonly string _azDevOpsPat = Environment.GetEnvironmentVariable("azDevOpsPat");
+        static readonly string _azDevOpsUri = Environment.GetEnvironmentVariable("azDevOpsUri");
 
         static async Task Main()
         {
-            Startup();
+            Initialize();
 
             var data = await GetDevOpsData();
 
@@ -30,19 +33,28 @@ namespace WebJob
             Console.WriteLine($"{data.Count} Projects Done.");
         }
 
+        private static void Initialize()
+        {
+            if (string.IsNullOrWhiteSpace(_azDevOpsPat) || string.IsNullOrWhiteSpace(_azDevOpsPat))
+                throw new ArgumentException("Missing Azure DevOps Uri (azDevOpsUri) and personal-access-token (azDevOpsPat) Environment Variables");
+
+            var authentication = Convert.ToBase64String(
+                ASCIIEncoding.ASCII.GetBytes(
+                    string.Format($"{string.Empty}:{_azDevOpsPat}")));
+
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authentication);
+        }
+
         private static async Task<List<DataModel>> GetDevOpsData()
         {
             var db = new List<DataModel>();
 
             // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list
             var projects = await GetJsonAsync("/_apis/projects");
-
-            if (null == projects)
-                throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
-
             foreach (var project in projects.value)
             {
-                Console.WriteLine("Processing project: " + project.name);
+                Console.WriteLine($"Processing project: {project.name}");
 
                 var data = new DataModel
                 {
@@ -50,20 +62,26 @@ namespace WebJob
                     Name = project.name,
                     Description = project.description,
                     Url = project.url,
-                    LastKnownActivity = project.lastUpdateTime
+                    ProjectLastUpdateTime = project.lastUpdateTime
                 };
+
+                // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/get%20project%20properties
+                var properties = await GetJsonAsync($"/_apis/projects/{project.id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template");
+                foreach (var propertie in properties.value)
+                {
+                    if (propertie.name == "System.Process Template")
+                        data.ProcessTemplate = propertie.value;
+                }
 
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list
                 var repositories = await GetJsonAsync($"/{project.id}/_apis/git/repositories");
                 foreach (var repositorie in repositories.value)
                 {
-                    //Console.WriteLine(" - repositorie: " + repositorie.name);
-
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/commits/get%20commits
                     var commits = await GetJsonAsync($"/{project.id}/_apis/git/repositories/{repositorie.id}/commits?searchCriteria.$top=1");
                     foreach (var commit in commits.value)
                     {
-                        //Console.WriteLine("  - last commit date: " + commit.committer.date);
+                        data.LastCommitDate = commit.committer.date;
                     }
                 }
 
@@ -75,9 +93,12 @@ namespace WebJob
 
         private static async Task<dynamic> GetJsonAsync(string action)
         {
-            var version = action.Contains('?') ? "&api-version=6.0" : "?api-version=6.0";
+            var version = action.Contains('?') ? $"&api-version={_version}" : $"?api-version={_version}";
 
-            using var response = await httpClient.GetAsync(azDevOpsUri + action + version);
+            using var response = await _httpClient.GetAsync(_azDevOpsUri + action + version);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NonAuthoritativeInformation)
+                throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
 
             if (response.IsSuccessStatusCode)
             {
@@ -86,21 +107,8 @@ namespace WebJob
                 return (dynamic)JsonConvert.DeserializeObject(result);
             }
 
-            // If no results (or Exception) retrun empty list
+            // If no results (or other Exception) we ignor and retrun an empty list
             return new { value = new List<string>() };
-        }
-
-        private static void Startup()
-        {
-            if (string.IsNullOrWhiteSpace(azDevOpsPat) || string.IsNullOrWhiteSpace(azDevOpsPat))
-                throw new ArgumentException("Missing Azure DevOps Uri and personal-access-token Environment Variables");
-
-            var authentication = Convert.ToBase64String(
-                ASCIIEncoding.ASCII.GetBytes(
-                    string.Format("{0}:{1}", string.Empty, azDevOpsPat)));
-
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authentication);
         }
     }
 }

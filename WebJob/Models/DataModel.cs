@@ -18,6 +18,22 @@ namespace WebJob.Models
 
         public string ProcessTemplate { get; set; }
 
-        public DateTime LastKnownActivity { get; set; }
+        public DateTime ProjectLastUpdateTime { get; set; }
+
+        public DateTime LastCommitDate { get; set; }
+
+        public DateTime LastWorkItemDate { get; set; }
+
+        public DateTime LastKnownActivity
+        {
+            get
+            {
+                var date = ProjectLastUpdateTime;
+                if (date < LastCommitDate) date = LastCommitDate;
+                if (date < LastWorkItemDate) date = LastWorkItemDate;
+
+                return date;
+            }
+        }
     }
 }
