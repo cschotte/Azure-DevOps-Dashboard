@@ -1,4 +1,14 @@
-﻿using System;
+﻿/*
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -73,6 +83,13 @@ namespace WebJob
                         data.ProcessTemplate = propertie.value;
                 }
 
+                // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/work%20items/get%20work%20item%20template
+                //var workitems = await GetJsonAsync($"/_apis/Contribution/HierarchyQuery/project/{project.id}");
+                //foreach (var workitem in workitems.value)
+                //{
+                //    //data.LastCommitDate = commit.committer.date;
+                //}
+
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list
                 var repositories = await GetJsonAsync($"/{project.id}/_apis/git/repositories");
                 foreach (var repositorie in repositories.value)
@@ -96,7 +113,7 @@ namespace WebJob
             var version = action.Contains('?') ? $"&api-version={_version}" : $"?api-version={_version}";
 
             using var response = await _httpClient.GetAsync(_azDevOpsUri + action + version);
-
+ 
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NonAuthoritativeInformation)
                 throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
 
