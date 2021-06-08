@@ -23,7 +23,7 @@ namespace WebJob
 {
     class Program
     {
-        const string _version = "6.0-preview.1";
+        const string _version = "6.1-preview.2";
 
         static readonly HttpClient _httpClient = new();
 
@@ -61,9 +61,12 @@ namespace WebJob
             var db = new List<DataModel>();
 
             // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list
-            var projects = await GetJsonAsync("/_apis/projects");
+            var projects = await GetJsonAsync(
+                $"/_apis/projects");
             foreach (var project in projects.value)
             {
+                if (project.name != "ACAI-Golden-Copy") continue;
+
                 Console.WriteLine($"Processing project: {project.name}");
 
                 var data = new DataModel
@@ -76,26 +79,32 @@ namespace WebJob
                 };
 
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/get%20project%20properties
-                var properties = await GetJsonAsync($"/_apis/projects/{project.id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template");
+                var properties = await GetJsonAsync(
+                    $"/_apis/projects/{project.id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template");
                 foreach (var propertie in properties.value)
                 {
                     if (propertie.name == "System.Process Template")
                         data.ProcessTemplate = propertie.value;
                 }
 
-                // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/work%20items/get%20work%20item%20template
-                //var workitems = await GetJsonAsync($"/_apis/Contribution/HierarchyQuery/project/{project.id}");
-                //foreach (var workitem in workitems.value)
-                //{
-                //    //data.LastCommitDate = commit.committer.date;
-                //}
+                // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/wiql/query%20by%20wiql
+                var workitems = await PostJsonAsync(
+                    $"/{project.id}/_apis/wit/wiql?$top=10",
+                    $"SELECT [System.Id], [System.Title], [System.ChangedDate] FROM workitems WHERE [System.WorkItemType] <> '' AND [System.State] <> '' ORDER BY [System.ChangedDate] DESC");
+                foreach (var workitem in workitems.workItems)
+                {
+                    var id = workitem.id;
+                    //data.LastWorkItemDate = null;
+                }
 
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list
-                var repositories = await GetJsonAsync($"/{project.id}/_apis/git/repositories");
+                var repositories = await GetJsonAsync(
+                    $"/{project.id}/_apis/git/repositories");
                 foreach (var repositorie in repositories.value)
                 {
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/commits/get%20commits
-                    var commits = await GetJsonAsync($"/{project.id}/_apis/git/repositories/{repositorie.id}/commits?searchCriteria.$top=1");
+                    var commits = await GetJsonAsync(
+                        $"/{project.id}/_apis/git/repositories/{repositorie.id}/commits?searchCriteria.$top=1");
                     foreach (var commit in commits.value)
                     {
                         data.LastCommitDate = commit.committer.date;
@@ -113,7 +122,7 @@ namespace WebJob
             var version = action.Contains('?') ? $"&api-version={_version}" : $"?api-version={_version}";
 
             using var response = await _httpClient.GetAsync(_azDevOpsUri + action + version);
- 
+
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NonAuthoritativeInformation)
                 throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
 
@@ -126,6 +135,27 @@ namespace WebJob
 
             // If no results (or other Exception) we ignor and retrun an empty list
             return new { value = new List<string>() };
+        }
+
+        private static async Task<dynamic> PostJsonAsync(string action, string query)
+        {
+            var version = action.Contains('?') ? $"&api-version={_version}" : $"?api-version={_version}";
+            var content = new StringContent("{ \"query\" : \"" + query + "\" }", Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(_azDevOpsUri + action + version, content);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NonAuthoritativeInformation)
+                throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+
+                return (dynamic)JsonConvert.DeserializeObject(result);
+            }
+
+            // If no results (or other Exception) we ignor and retrun an empty list
+            return new { workItems = new List<string>() };
         }
     }
 }
