@@ -71,7 +71,7 @@ namespace WebJob
                 $"/_apis/projects?api-version=6.1-preview.4");
             foreach (var project in projects.value)
             {
-                if (project.name != "ACAI-Golden-Copy") continue;
+                //if (project.name != "ACAI-Golden-Copy") continue;
 
                 Console.WriteLine($"Processing project: {project.name}");
 
@@ -104,7 +104,7 @@ namespace WebJob
                         $"/{project.id}/_apis/wit/workitems/{item.id}?api-version=6.1-preview.3");
                     foreach (var field in workitem.fields)
                     {
-                       if(field.Name == "System.ChangedDate")
+                        if (field.Name == "System.ChangedDate" && data.LastWorkItemDate < (DateTime)field.Value)
                             data.LastWorkItemDate = field.Value;
                     }
                 }
