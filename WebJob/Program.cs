@@ -39,7 +39,7 @@ namespace WebJob
 
                 var data = await GetDevOpsData();
 
-                await File.WriteAllTextAsync("data.json", JsonConvert.SerializeObject(data, Formatting.Indented));
+                await SaveDevOpsData(JsonConvert.SerializeObject(data, Formatting.Indented));
 
                 Console.WriteLine($"{data.Count} Projects Done.");
             }
@@ -51,6 +51,8 @@ namespace WebJob
 
         private static void Initialize()
         {
+            Console.WriteLine($"Starting...");
+
             if (string.IsNullOrWhiteSpace(_azDevOpsPat) || string.IsNullOrWhiteSpace(_azDevOpsPat))
                 throw new ArgumentException("Missing Azure DevOps Uri (azDevOpsUri) and personal-access-token (azDevOpsPat) Environment Variables");
 
@@ -60,6 +62,12 @@ namespace WebJob
 
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authentication);
+        }
+
+        private static async Task SaveDevOpsData(string data)
+        {
+            Console.WriteLine($"Writing results to file...");
+            await File.WriteAllTextAsync("data.json", data);
         }
 
         private static async Task<List<DataModel>> GetDevOpsData()
@@ -73,7 +81,7 @@ namespace WebJob
             {
                 //if (project.name != "ACAI-Golden-Copy") continue;
 
-                Console.WriteLine($"Processing project: {project.name}");
+                Console.WriteLine($"Processing: {project.name}");
 
                 var data = new DataModel
                 {
@@ -95,8 +103,8 @@ namespace WebJob
 
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/wiql/query%20by%20wiql
                 var items = await PostJsonAsync(
-                    $"/{project.id}/_apis/wit/wiql?$top=20&api-version=6.1-preview.2",
-                    $"SELECT [System.Id] FROM workitems WHERE [System.WorkItemType] <> '' AND [System.State] <> '' ORDER BY [System.ChangedDate] DESC");
+                    $"/{project.id}/_apis/wit/wiql?$top=1&api-version=6.1-preview.2",
+                    $"SELECT [System.Id] FROM workitems WHERE [System.WorkItemType] <> '' AND [System.State] <> '' AND [System.TeamProject] = @project ORDER BY [System.ChangedDate] DESC");
                 foreach (var item in items.workItems)
                 {
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/work%20items/get%20work%20item
