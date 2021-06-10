@@ -95,7 +95,7 @@ namespace WebJob
                     ProjectId = project.id,
                     Name = project.name,
                     Description = project.description,
-                    Url = project.url,
+                    Url = $"{_azDevOpsUri}/{project.name}",
                     LastProjectUpdateTime = project.lastUpdateTime
                 };
 

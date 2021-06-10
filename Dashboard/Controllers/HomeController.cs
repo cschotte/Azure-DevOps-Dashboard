@@ -36,17 +36,24 @@ namespace Dashboard.Controllers
             return View();
         }
 
-        public async Task<IActionResult> GetDevOpsData()
+        public async Task<IActionResult> GetData()
         {
-            var filename = "data.json";
-            var homepath = Environment.GetEnvironmentVariable("HOME");
-            
-            if (!string.IsNullOrWhiteSpace(homepath))
-                filename = $"{homepath}{Path.DirectorySeparatorChar}{filename}";
+            try
+            {
+                var filename = "data.json";
+                var homepath = Environment.GetEnvironmentVariable("HOME");
 
-            string result = await System.IO.File.ReadAllTextAsync(filename);
+                if (!string.IsNullOrWhiteSpace(homepath))
+                    filename = $"{homepath}{Path.DirectorySeparatorChar}{filename}";
 
-            return Content(result);
+                string result = await System.IO.File.ReadAllTextAsync(filename);
+
+                return Content(result);
+            }
+            catch
+            {
+                return Json(new List<string>());
+            }
         }
 
         [AllowAnonymous]

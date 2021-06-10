@@ -1,35 +1,68 @@
 ﻿@{
-	ViewData["Title"] = "DevOps";
+	ViewData["Title"] = "Home";
 }
 
 <div class="col-10">
  <h4 class="mb-3">Your Azure DevOps projects</h4>
- <table id="projects" class="table table-striped table-hover table-fw-widget">
+ <table id="projects" class="table table-striped display">
   <thead>
    <tr>
 	<th>Name</th>
-    <th>ProcessTemplate</th>
-    <th>Days old</th>
+    <th></th>
+    <th>Process Template</th>
+    <th>Age</th>
+    <th></th>
    </tr>
   </thead>
  </table>
 </div>
 
 @section Scripts {
-<script type="text/javascript">
+<script>
 
 $(document).ready( function () {
+
 	var table = $("#projects").DataTable({
         ajax: {
-            url: '/Home/GetDevOpsData',
+            url: '/Home/GetData',
             dataSrc: ''
         },
+        buttons: [
+            'copy', 'excel'
+        ],
         columns: [
             { data: "Name" },
+            {
+                width: "15px",
+                data: null,
+                orderable: false,
+                render: function (data, type, row, meta) {
+                    if(data.Description != null)
+                        return '<a href="#" data-toggle="tooltip" data-placement="top" data-content="' + data.Description + '"><i class="bi bi-info-circle"></i></a>';
+                    else
+                        return ''
+                }
+            },
             { data: "ProcessTemplate" },
-            { data: "ProjectAge" }
+            {
+                data: "ProjectAge",
+                render: function (data, type, row, meta) {
+                    return Math.round(data)
+                }
+            },
+            {
+                width: "15px",
+                data: null,
+                orderable: false,
+                render: function (data, type, row, meta) {
+                    return '<a href="' + data.Url + '" target="_blank"><i class="bi bi-box-arrow-right"></i></a>';
+                }
+            }
         ]
 	});
+
+    $('[data-toggle="tooltip"]').tooltip();
+
 });
 
 </script>
