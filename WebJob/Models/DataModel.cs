@@ -31,5 +31,13 @@ namespace WebJob.Models
                 return date;
             }
         }
+
+        public double ProjectAge
+        {
+            get
+            {
+                return (DateTime.Now - LastKnownActivity).TotalDays;
+            }
+        }
     }
 }
