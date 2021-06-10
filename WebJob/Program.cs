@@ -17,14 +17,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WebJob.Models;
 
 namespace WebJob
 {
     class Program
     {
-        const string _version = "6.1-preview.2";
-
         static readonly HttpClient _httpClient = new();
 
         // Read Azure DevOps credentials from application settings on WebJob startup
@@ -34,13 +33,20 @@ namespace WebJob
 
         static async Task Main()
         {
-            Initialize();
+            try
+            {
+                Initialize();
 
-            var data = await GetDevOpsData();
+                var data = await GetDevOpsData();
 
-            await File.WriteAllTextAsync("data.json", JsonConvert.SerializeObject(data, Formatting.Indented));
+                await File.WriteAllTextAsync("data.json", JsonConvert.SerializeObject(data, Formatting.Indented));
 
-            Console.WriteLine($"{data.Count} Projects Done.");
+                Console.WriteLine($"{data.Count} Projects Done.");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+            }
         }
 
         private static void Initialize()
@@ -62,7 +68,7 @@ namespace WebJob
 
             // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list
             var projects = await GetJsonAsync(
-                $"/_apis/projects");
+                $"/_apis/projects?api-version=6.1-preview.4");
             foreach (var project in projects.value)
             {
                 if (project.name != "ACAI-Golden-Copy") continue;
@@ -75,12 +81,12 @@ namespace WebJob
                     Name = project.name,
                     Description = project.description,
                     Url = project.url,
-                    ProjectLastUpdateTime = project.lastUpdateTime
+                    LastProjectUpdateTime = project.lastUpdateTime
                 };
 
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/get%20project%20properties
                 var properties = await GetJsonAsync(
-                    $"/_apis/projects/{project.id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template");
+                    $"/_apis/projects/{project.id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template&api-version=6.1-preview.1");
                 foreach (var propertie in properties.value)
                 {
                     if (propertie.name == "System.Process Template")
@@ -88,23 +94,29 @@ namespace WebJob
                 }
 
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/wiql/query%20by%20wiql
-                var workitems = await PostJsonAsync(
-                    $"/{project.id}/_apis/wit/wiql?$top=10",
-                    $"SELECT [System.Id], [System.Title], [System.ChangedDate] FROM workitems WHERE [System.WorkItemType] <> '' AND [System.State] <> '' ORDER BY [System.ChangedDate] DESC");
-                foreach (var workitem in workitems.workItems)
+                var items = await PostJsonAsync(
+                    $"/{project.id}/_apis/wit/wiql?$top=20&api-version=6.1-preview.2",
+                    $"SELECT [System.Id] FROM workitems WHERE [System.WorkItemType] <> '' AND [System.State] <> '' ORDER BY [System.ChangedDate] DESC");
+                foreach (var item in items.workItems)
                 {
-                    var id = workitem.id;
-                    //data.LastWorkItemDate = null;
+                    // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/work%20items/get%20work%20item
+                    var workitem = await GetJsonAsync(
+                        $"/{project.id}/_apis/wit/workitems/{item.id}?api-version=6.1-preview.3");
+                    foreach (var field in workitem.fields)
+                    {
+                       if(field.Name == "System.ChangedDate")
+                            data.LastWorkItemDate = field.Value;
+                    }
                 }
 
                 // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list
                 var repositories = await GetJsonAsync(
-                    $"/{project.id}/_apis/git/repositories");
+                    $"/{project.id}/_apis/git/repositories?api-version=6.1-preview.1");
                 foreach (var repositorie in repositories.value)
                 {
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/commits/get%20commits
                     var commits = await GetJsonAsync(
-                        $"/{project.id}/_apis/git/repositories/{repositorie.id}/commits?searchCriteria.$top=1");
+                        $"/{project.id}/_apis/git/repositories/{repositorie.id}/commits?searchCriteria.$top=1&api-version=6.1-preview.1");
                     foreach (var commit in commits.value)
                     {
                         data.LastCommitDate = commit.committer.date;
@@ -119,9 +131,7 @@ namespace WebJob
 
         private static async Task<dynamic> GetJsonAsync(string action)
         {
-            var version = action.Contains('?') ? $"&api-version={_version}" : $"?api-version={_version}";
-
-            using var response = await _httpClient.GetAsync(_azDevOpsUri + action + version);
+            using var response = await _httpClient.GetAsync(_azDevOpsUri + action);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NonAuthoritativeInformation)
                 throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");
@@ -139,10 +149,9 @@ namespace WebJob
 
         private static async Task<dynamic> PostJsonAsync(string action, string query)
         {
-            var version = action.Contains('?') ? $"&api-version={_version}" : $"?api-version={_version}";
             var content = new StringContent("{ \"query\" : \"" + query + "\" }", Encoding.UTF8, "application/json");
 
-            using var response = await _httpClient.PostAsync(_azDevOpsUri + action + version, content);
+            using var response = await _httpClient.PostAsync(_azDevOpsUri + action, content);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.NonAuthoritativeInformation)
                 throw new ArgumentException("Your personal-access-token to Azure DevOps is expired or not valid");

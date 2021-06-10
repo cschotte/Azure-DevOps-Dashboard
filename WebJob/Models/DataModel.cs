@@ -14,7 +14,7 @@ namespace WebJob.Models
 
         public string ProcessTemplate { get; set; }
 
-        public DateTime ProjectLastUpdateTime { get; set; }
+        public DateTime LastProjectUpdateTime { get; set; }
 
         public DateTime LastCommitDate { get; set; }
 
@@ -24,7 +24,7 @@ namespace WebJob.Models
         {
             get
             {
-                var date = ProjectLastUpdateTime;
+                var date = LastProjectUpdateTime;
                 if (date < LastCommitDate) date = LastCommitDate;
                 if (date < LastWorkItemDate) date = LastWorkItemDate;
 
