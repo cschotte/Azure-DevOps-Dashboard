@@ -1,0 +1,4 @@
+{
+  // Runs at 1:30 AM every day
+  "schedule": "0 30 1 * * *"
+}

@@ -27,8 +27,8 @@ namespace WebJob
 
         // Read Azure DevOps credentials from application settings on WebJob startup
         // https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
-        static readonly string _azDevOpsPat = Environment.GetEnvironmentVariable("azDevOpsPat");
-        static readonly string _azDevOpsUri = Environment.GetEnvironmentVariable("azDevOpsUri");
+        static string _azDevOpsPat = Environment.GetEnvironmentVariable("azDevOpsPat");
+        static string _azDevOpsUri = Environment.GetEnvironmentVariable("azDevOpsUri");
 
         static async Task Main()
         {
@@ -52,8 +52,11 @@ namespace WebJob
         {
             Console.WriteLine($"Starting...");
 
-            if (string.IsNullOrWhiteSpace(_azDevOpsPat) || string.IsNullOrWhiteSpace(_azDevOpsPat))
+            if (string.IsNullOrWhiteSpace(_azDevOpsUri) || string.IsNullOrWhiteSpace(_azDevOpsPat))
                 throw new ArgumentException("Missing Azure DevOps Uri (azDevOpsUri) and personal-access-token (azDevOpsPat) Environment Variables");
+
+            // remove last '/' if any
+            _azDevOpsUri = _azDevOpsUri.TrimEnd(new[] { '/' });
 
             var authentication = Convert.ToBase64String(
                 ASCIIEncoding.ASCII.GetBytes(
@@ -66,7 +69,14 @@ namespace WebJob
         private static async Task SaveDevOpsData(string data)
         {
             Console.WriteLine($"Writing results to file...");
-            await File.WriteAllTextAsync("data.json", data);
+
+            var filename = "data.json";
+            var homepath = Environment.GetEnvironmentVariable("HOME"); // When running on Azure
+            
+            if (!string.IsNullOrWhiteSpace(homepath))
+                filename = $"{homepath}{Path.DirectorySeparatorChar}{filename}";
+
+            await File.WriteAllTextAsync(filename, data);
         }
 
         private static async Task<List<DataModel>> GetDevOpsData()
@@ -78,8 +88,6 @@ namespace WebJob
                 $"/_apis/projects?api-version=6.1-preview.4");
             foreach (var project in projects.value)
             {
-                //if (project.name != "ACAI-Golden-Copy") continue;
-
                 Console.WriteLine($"Processing: {project.name}");
 
                 var data = new DataModel
