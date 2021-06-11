@@ -2,68 +2,85 @@
 	ViewData["Title"] = "Home";
 }
 
-<div class="col-10">
- <h4 class="mb-3">Your Azure DevOps projects</h4>
- <table id="projects" class="table table-striped display">
-  <thead>
-   <tr>
-	<th>Name</th>
-    <th></th>
-    <th>Process Template</th>
-    <th>Age</th>
-    <th></th>
-   </tr>
-  </thead>
- </table>
+<div class="row">
+ <div class="col-12">
+  <h4 class="mb-3">Your Azure DevOps projects</h4>
+  <table id="projects" class="table table-striped">
+   <thead>
+	<tr>
+	 <th>Name</th>
+	 <th></th>
+	 <th>Process Template</th>
+	 <th>Age</th>
+	 <th></th>
+	</tr>
+   </thead>
+  </table>
+ </div>
+</div>
+
+<hr />
+
+<div class="row">
+ <div class="col-12">
+  <blockquote class="blockquote">
+   <p class="mb-0">Do you need more data for reporting or like to automate something?</p>
+   <footer class="blockquote-footer">Download here the <a href="~/Home/GetData">JSON data</a>.</footer>
+  </blockquote>
+ </div>
 </div>
 
 @section Scripts {
 <script>
 
-$(document).ready( function () {
+	$(document).ready( function () {
 
-	var table = $("#projects").DataTable({
-        ajax: {
-            url: '/Home/GetData',
-            dataSrc: ''
-        },
-        buttons: [
-            'copy', 'excel'
-        ],
-        columns: [
-            { data: "Name" },
-            {
-                width: "15px",
-                data: null,
-                orderable: false,
-                render: function (data, type, row, meta) {
-                    if(data.Description != null)
-                        return '<a href="#" data-toggle="tooltip" data-placement="top" data-content="' + data.Description + '"><i class="bi bi-info-circle"></i></a>';
-                    else
-                        return ''
-                }
-            },
-            { data: "ProcessTemplate" },
-            {
-                data: "ProjectAge",
-                render: function (data, type, row, meta) {
-                    return Math.round(data)
-                }
-            },
-            {
-                width: "15px",
-                data: null,
-                orderable: false,
-                render: function (data, type, row, meta) {
-                    return '<a href="' + data.Url + '" target="_blank"><i class="bi bi-box-arrow-right"></i></a>';
-                }
-            }
-        ]
+		var table = $("#projects").DataTable({
+			ajax: {
+				url: '/Home/GetData',
+				dataSrc: ''
+			},
+			order: [[3, "desc"]],
+			columns: [
+				{ data: "Name" },
+				{
+					width: "15px",
+					data: null,
+					orderable: false,
+					render: function (data, type, row, meta) {
+						if(data.Description != null)
+							return '<a href="#" data-toggle="tooltip" title="' + data.Description + '"><i class="bi bi-info-circle"></i></a>';
+						else
+							return ''
+					}
+				},
+				{
+					data: "ProcessTemplate",
+					width: "150px"
+				},
+				{
+					data: "ProjectAge",
+					width: "30px",
+					render: function (data, type, row, meta) {
+						return Math.round(data)
+					}
+				},
+				{
+					width: "15px",
+					data: null,
+					orderable: false,
+					render: function (data, type, row, meta) {
+						return '<a href="' + data.Url + '" target="_blank"><i class="bi bi-box-arrow-right"></i></a>';
+					}
+				}
+			]
+		});
+
+		$('#projects').on('draw.dt', function () {
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+
 	});
-
-    $('[data-toggle="tooltip"]').tooltip();
-
-});
 
 </script>
 }

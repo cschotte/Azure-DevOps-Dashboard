@@ -23,6 +23,9 @@ namespace WebJob
 {
     class Program
     {
+        // max projects to process
+        const int max = 750;
+
         static readonly HttpClient _httpClient = new();
 
         // Read Azure DevOps credentials from application settings on WebJob startup
@@ -85,7 +88,7 @@ namespace WebJob
 
             // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list
             var projects = await GetJsonAsync(
-                $"/_apis/projects?api-version=6.1-preview.4");
+                $"/_apis/projects?$top={max}&api-version=6.1-preview.4");
             foreach (var project in projects.value)
             {
                 Console.WriteLine($"Processing: {project.name}");
