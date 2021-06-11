@@ -2,6 +2,8 @@
 
 This solution generates a simple overview of all the [Azure DevOps](https://dev.azure.com/) projects in your organization and calculates the last known activity date on changes in commits, work items, and the project itself.
 
+![Architecture](Architecture/demo.png)
+
 ## The architecture
 
 The solution runs on as a single [Azure Web App](https://azure.microsoft.com/en-us/services/app-service/web/), it uses a background [WebJob](https://docs.microsoft.com/en-us/azure/app-service/webjobs-create) to collect all the data needed to present in the web dashboard. If you have many DevOps projects (more than 300) in a single Azure DevOps organization, it is recommended to move them to a multiple organization set up to avoid any performance issues with Azure DevOps.
