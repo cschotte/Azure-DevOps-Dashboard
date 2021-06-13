@@ -1,16 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace WebJob.Models
 {
     class DataModel
     {
-        public string ProjectId { get; set; }
+        public DataModel()
+        {
+            Owners = new List<UserModel>();
+        }
+
+        public Guid ProjectId { get; set; }
 
         public string Name { get; set; }
 
         public string Description { get; set; }
 
-        public string Url { get; set; }
+        public Uri Url { get; set; }
+
+        public List<UserModel> Owners { get; set; }
 
         public string ProcessTemplate { get; set; }
 
