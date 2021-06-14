@@ -2,11 +2,11 @@
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fcschotte%2FAzure-DevOps-Dashboard%2Fmain%2FIaC%2Fazuredeploy.json)
 
-This dashboard solution generates a simple overview of all the [Azure DevOps](https://dev.azure.com/) projects in your organization and calculates the last known activity in days on commits, work items, and the project itself. You can connect this dashboard (using the included endpoint) to [Microsoft Power Automate](https://flow.microsoft.com/) to automate task on project level.
+This dashboard solution generates a simple overview of all the [Azure DevOps](https://dev.azure.com/) projects in your organization and calculates the last known activity in *days* on commits, work items, and the project itself. You can connect this dashboard (using the included endpoint) to [Microsoft Power Automate](https://flow.microsoft.com/) to automate task on project level.
 
 ![Architecture](Architecture/demo.png)
 
-## The architecture
+## Installation
 
 The solution runs on as a single [Azure Web App](https://azure.microsoft.com/en-us/services/app-service/web/) (Windows or Linux), it uses a background [WebJob](https://docs.microsoft.com/en-us/azure/app-service/webjobs-create) to collect all the data needed to present in the web dashboard. If you have many DevOps projects (more than 300) in a single Azure DevOps organization, it is recommended to move them to a multiple organization set up to avoid any performance issues with Azure DevOps.
 
@@ -21,10 +21,9 @@ SET azDevOpsPat=tjqp44k54nqfmppaqd7di27kpvh...........
 SET azDevOpsUri=https://dev.azure.com/yourorgname.....
 ```
 
-## Installation
-
-
 ## API
+
+The `/api/data` api will retrun a list of the folowing properties:
 
 ```json
 [
