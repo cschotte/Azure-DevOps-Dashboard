@@ -2,6 +2,12 @@
 	ViewData["Title"] = "Home";
 }
 
+<div id="error" class="alert alert-warning alert-dismissible" style="display: none" role="alert">
+	<button type="button" class="close" data-dismiss="alert">&times;</button>
+	<h4 class="alert-heading">Problem</h4>
+	<p id="error-msg"></p>
+</div>
+
 <div class="row">
  <div class="col-12">
   <h4 class="mb-3">Your Azure DevOps projects</h4>
@@ -25,7 +31,7 @@
  <div class="col-12">
   <blockquote class="blockquote">
    <p class="mb-0">Do you need more data for reporting or like to automate something?</p>
-   <footer class="blockquote-footer">Download here the <a href="~/Home/GetData">JSON data</a>.</footer>
+   <footer class="blockquote-footer">Use the <a href="~/api/data">/api/data</a> and <a href="~/api/status">/api/status</a> api.</footer>
   </blockquote>
  </div>
 </div>
@@ -35,31 +41,39 @@
 
 	$(document).ready( function () {
 
+		$.getJSON("/api/status", function(status) {
+			if(status['error'] == true)
+			{
+				$("#error-msg").text(status['message']);
+				$("#error").show();
+			}
+		});
+
 		var table = $("#projects").DataTable({
 			ajax: {
-				url: '/Home/GetData',
+				url: '/api/data',
 				dataSrc: ''
 			},
 			order: [[3, "desc"]],
 			columns: [
-				{ data: "Name" },
+				{ data: "name" },
 				{
 					width: "15px",
 					data: null,
 					orderable: false,
 					render: function (data, type, row, meta) {
-						if(data.Description != null)
-							return '<a href="#" data-toggle="tooltip" title="' + data.Description + '"><i class="bi bi-info-circle"></i></a>';
+						if(data.description != null)
+							return '<a href="#" data-toggle="tooltip" title="' + data.description + '"><i class="bi bi-info-circle"></i></a>';
 						else
 							return ''
 					}
 				},
 				{
-					data: "ProcessTemplate",
+					data: "processTemplate",
 					width: "150px"
 				},
 				{
-					data: "ProjectAge",
+					data: "projectAge",
 					width: "30px",
 					className: "text-center",
 					render: function (data, type, row, meta) {
@@ -71,7 +85,7 @@
 					data: null,
 					orderable: false,
 					render: function (data, type, row, meta) {
-						return '<a href="' + data.Url + '" target="_blank"><i class="bi bi-box-arrow-right"></i></a>';
+						return '<a href="' + data.url + '" target="_blank"><i class="bi bi-box-arrow-right"></i></a>';
 					}
 				}
 			]

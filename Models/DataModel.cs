@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebJob.Models
+namespace Dashboard.Models
 {
-    class DataModel
+    public class DataModel
     {
         public DataModel()
         {

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebJob.Models
+namespace Dashboard.Models
 {
-    class StatusModel
+    public class StatusModel
     {
         public StatusModel()
         {

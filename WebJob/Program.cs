@@ -17,9 +17,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using WebJob.Models;
+using Dashboard.Models;
 
-namespace WebJob
+namespace Dashboard.WebJob
 {
     class Program
     {

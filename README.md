@@ -21,3 +21,28 @@ SET azDevOpsUri=https://dev.azure.com/yourorgname.....
 
 ## Installation
 
+
+## API
+
+```json
+[
+    {
+        "projectId": "guid",
+        "name": "project name",
+        "description": "project description",
+        "url": "https://dev.azure.com/projectname",
+        "owners": [
+            {
+                "displayName": "Contoso Admin name",
+                "mailAddress": "admin@contoso.com"
+            }
+        ],
+        "processTemplate": "Scrum",
+        "lastProjectUpdateTime": "2021-03-22T11:40:32.09Z",
+        "lastCommitDate": "2020-04-23T18:00:27Z",
+        "lastWorkItemDate": "0001-01-01T00:00:00",
+        "lastKnownActivity": "2021-03-22T11:40:32.09Z",
+        "projectAge": 83.92575148777316
+    }
+]
+```

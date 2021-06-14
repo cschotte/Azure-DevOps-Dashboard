@@ -36,26 +36,6 @@ namespace Dashboard.Controllers
             return View();
         }
 
-        public async Task<IActionResult> GetData()
-        {
-            try
-            {
-                var filename = "data.json";
-                var homepath = Environment.GetEnvironmentVariable("HOME");
-
-                if (!string.IsNullOrWhiteSpace(homepath))
-                    filename = $"{homepath}{Path.DirectorySeparatorChar}{filename}";
-
-                string result = await System.IO.File.ReadAllTextAsync(filename);
-
-                return Content(result);
-            }
-            catch
-            {
-                return Json(new List<string>());
-            }
-        }
-
         [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
