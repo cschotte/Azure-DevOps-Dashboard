@@ -3,9 +3,9 @@
 }
 
 <div id="error" class="alert alert-warning alert-dismissible" style="display: none" role="alert">
-	<button type="button" class="close" data-dismiss="alert">&times;</button>
-	<h4 class="alert-heading">Problem</h4>
-	<p id="error-msg"></p>
+ <button type="button" class="close" data-dismiss="alert">&times;</button>
+ <h4 class="alert-heading">Problem</h4>
+ <p id="error-msg"></p>
 </div>
 
 <div class="row">
@@ -31,7 +31,7 @@
  <div class="col-12">
   <blockquote class="blockquote">
    <p class="mb-0">Do you need more data for reporting or like to automate something?</p>
-   <footer class="blockquote-footer">Use the <a href="~/api/data">/api/data</a> and <a href="~/api/status">/api/status</a> api.</footer>
+   <footer class="blockquote-footer">Use the <a href="~/api/data">/api/data</a> and <a href="~/api/status">/api/status</a> api's'.</footer>
   </blockquote>
  </div>
 </div>
@@ -41,6 +41,7 @@
 
 	$(document).ready( function () {
 
+		// Get status
 		$.getJSON("/api/status", function(status) {
 			if(status['error'] == true)
 			{
@@ -49,6 +50,7 @@
 			}
 		});
 
+		// Get project data for table
 		var table = $("#projects").DataTable({
 			ajax: {
 				url: '/api/data',
@@ -91,6 +93,7 @@
 			]
 		});
 
+		// enable tooltips
 		$('#projects').on('draw.dt', function () {
 			$('[data-toggle="tooltip"]').tooltip();
 		});
