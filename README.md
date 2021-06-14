@@ -1,6 +1,6 @@
 # Azure DevOps Dashboard
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fcschotte%2FAzure-DevOps-Dashboard%2Fmain%2FIaC%2Fazuredeploy.json)
+[![Deploy to Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fcschotte%2FAzure-DevOps-Dashboard%2Fmain%2FIaC%2Fazuredeploy.json)
 
 This dashboard solution generates a simple overview of all the [Azure DevOps](https://dev.azure.com/) projects in your organization and calculates the last known activity in *days* on commits, work items, and the project itself. You can connect this dashboard (using the included endpoint) to [Microsoft Power Automate](https://flow.microsoft.com/) to automate task on project level.
 
