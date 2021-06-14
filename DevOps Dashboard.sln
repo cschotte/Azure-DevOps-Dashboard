@@ -13,7 +13,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dashboard", "Dashboard\Dashboard.csproj", "{0064F120-9C29-4ECA-8DD8-F505327CE37F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{7745B842-CB7F-43FF-9049-8615DE1D64E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{7745B842-CB7F-43FF-9049-8615DE1D64E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IaC", "IaC", "{EF9416A5-0B38-4726-985A-8455DAE8A81F}"
+	ProjectSection(SolutionItems) = preProject
+		IaC\parameters.json = IaC\parameters.json
+		IaC\template.json = IaC\template.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,6 +1,6 @@
-![Deploy to Azure](https://aka.ms/deploytoazurebutton)
-
 # Azure DevOps Dashboard
+
+![Deploy to Azure](https://aka.ms/deploytoazurebutton)
 
 This dashboard solution generates a simple overview of all the [Azure DevOps](https://dev.azure.com/) projects in your organization and calculates the last known activity in days on commits, work items, and the project itself. You can connect this dashboard (using the included endpoint) to [Microsoft Power Automate](https://flow.microsoft.com/) to automate task on project level.
 
