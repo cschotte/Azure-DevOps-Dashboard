@@ -10,7 +10,7 @@ Next, you need some insights and automation on which projects have no activity a
 
 This dashboard solution generates a simple overview of all the [Azure DevOps](https://dev.azure.com/) projects in your organization and calculates the last known activity in **days** on commits, work items, and the project itself. You can connect this dashboard (using the included endpoint) to [Microsoft Power Automate](https://flow.microsoft.com/) or Excel to automate tasks on project level.
 
-![Dashboard](Architecture/demo.png)
+![Dashboard](Architecture/dashboard.png)
 
 ## Installation
 
