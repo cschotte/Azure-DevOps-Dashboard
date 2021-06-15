@@ -29,25 +29,25 @@ In the next steps, you will create a resource group, an app service plan (the we
 
 1. Login into your Azure subscription
 
-```Azure CLI
+```cmd
 az login
 ```
 
 2. (Optional) Select the subscription where you like to deploy the dashboard.
 
-```Azure CLI
+```cmd
 az account set --subscription "<your subscription>"
 ```
 
 3. Create a resource group, change the name `rg-azdevops`
 
-```Azure CLI
+```cmd
 az group create -l westeurope -n rg-azdevops
 ```
 
 4. Create an app service plan and webapp, change the names `plan-azdevops` and `azdevops`
 
-```Azure CLI
+```cmd
 az appservice plan create -g rg-azdevops -n plan-azdevops -l westeurope
 
 az webapp create -g rg-azdevops -p plan-azdevops -n azdevops -r "DOTNET|5.0"
@@ -55,14 +55,14 @@ az webapp create -g rg-azdevops -p plan-azdevops -n azdevops -r "DOTNET|5.0"
 
 5. Add your Azure DevOps URL and personal access token (PAT)
 
-```Azure CLI
+```cmd
 az webapp config appsettings set -g rg-azdevops -n azdevops --settings azDevOpsPat=<your token>
 az webapp config appsettings set -g rg-azdevops -n azdevops --settings azDevOpsPat=https://dev.azure.com/<yourorgname>
 ```
 
 6. Set the `always-on` future we need for the WebJob
 
-```Azure CLI
+```cmd
 az webapp config set -g rg-azdevops -n azdevops --always-on true
 ```
 
