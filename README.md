@@ -21,7 +21,7 @@ The solution runs on as a single [Azure Web App](https://azure.microsoft.com/en-
 1. An Azure account with an active subscription. [Create an account for free](https://azure.microsoft.com/free/dotnet).
 2. Install the [Azure CLI on Windows](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-windows) to automate the following steps
 3. An Azure DevOps personal access token (PAT). See here [how to get a personal access token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page).
-4. Download the Azure DevOps Dashboard [Release.zip](Release.zip) package.
+4. Download the Azure DevOps Dashboard [Release.zip](https://github.com/cschotte/Azure-DevOps-Dashboard/raw/main/Release.zip) package.
 
 ### Create an Azure Web App
 
@@ -68,7 +68,7 @@ az webapp config set -g rg-azdevops -n azdevops --always-on true
 
 ### Deploy the Azure DevOps Dashboard
 
-Did you download the Azure DevOps Dashboard [Release.zip](Release.zip) package? After the installation we also run the WebJob for the first time, this can take a while depending on how many projects you have in your Azure DevOps organization account.
+Did you download the Azure DevOps Dashboard [Release.zip](https://github.com/cschotte/Azure-DevOps-Dashboard/raw/main/Release.zip) package? After the installation we also run the WebJob for the first time, this can take a while depending on how many projects you have in your Azure DevOps organization account.
 
 ```Azure CLI
 az webapp deployment source config-zip -g rg-azdevops -n azdevops --src Release.zip
