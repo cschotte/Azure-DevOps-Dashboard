@@ -57,7 +57,7 @@ az webapp create -g rg-azdevops -p plan-azdevops -n azdevops -r "DOTNET|5.0"
 
 ```cmd
 az webapp config appsettings set -g rg-azdevops -n azdevops --settings azDevOpsPat=<your token>
-az webapp config appsettings set -g rg-azdevops -n azdevops --settings azDevOpsPat=https://dev.azure.com/<yourorgname>
+az webapp config appsettings set -g rg-azdevops -n azdevops --settings azDevOpsUri=https://dev.azure.com/<yourorgname>
 ```
 
 6. Set the `always-on` future we need for the WebJob
