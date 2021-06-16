@@ -213,7 +213,7 @@ namespace Dashboard.WebJob
             }
 
             // If no results (or other Exception) we ignor and retrun null
-            return new { value = new List<string>() };
+            return null;
         }
 
         private static async Task<dynamic> PostJsonAsync(string action, string content)
