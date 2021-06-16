@@ -38,19 +38,19 @@ namespace Dashboard
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            //    .AddMicrosoftIdentityWebApp(Configuration.GetSection("AzureAd"));
+            services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                .AddMicrosoftIdentityWebApp(Configuration.GetSection("AzureAd"));
 
             services.AddControllersWithViews(options =>
             {
-                //var policy = new AuthorizationPolicyBuilder()
-                //    .RequireAuthenticatedUser()
-                //    .Build();
-                //options.Filters.Add(new AuthorizeFilter(policy));
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
             });
 
-            services.AddRazorPages();
-                 //.AddMicrosoftIdentityUI();
+            services.AddRazorPages()
+                 .AddMicrosoftIdentityUI();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -71,8 +71,8 @@ namespace Dashboard
 
             app.UseRouting();
 
-            //app.UseAuthentication();
-            //app.UseAuthorization();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
