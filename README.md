@@ -72,11 +72,12 @@ Did you download the Azure DevOps Dashboard [Release.zip](https://github.com/csc
 
 > **Authentication** In the release package authentication is disabled! Please register your application first in your Azure Active Directory by following the steps described [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-v2-aspnet-core-webapp). You only need to update the **appsettings.json** inside the release package.
 
-```Azure CLI
+```cmd
 az webapp deployment source config-zip -g rg-azdevops -n azdevops --src Release.zip
 
 az webapp webjob triggered run -n azdevops -g rg-azdevops --webjob-name Webjob
 ```
+
 ## Architecture
 
 ![Architecture](Architecture/architecture.png)
