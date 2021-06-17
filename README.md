@@ -119,7 +119,7 @@ To automate tasks, you can use the API to connect to Excel, Microsoft Power Auto
 
 ## Migration Tools for Azure DevOps
 
-Out of the box Azure DevOps will not migrate projects between organizations (this future is requested for [many years](https://developercommunity.visualstudio.com/t/make-it-possible-to-move-a-team-project-between-te-1/365365), but on technical level it is not going to be happen). Luckily, there are tools available to help you to migrate/move projects:
+Out of the box Azure DevOps will not migrate projects between organizations (this future is requested for [many years](https://developercommunity.visualstudio.com/t/make-it-possible-to-move-a-team-project-between-te-1/365365), but on technical level it is not going to happen). Luckily, there are tools available to help you to migrate/move projects:
 
 * [Move Git repositories to another project with full-fidelity history](https://docs.microsoft.com/en-us/azure/devops/repos/git/move-git-repos-between-team-projects).
 * [VSTS work item migrator](https://github.com/microsoft/vsts-work-item-migrator)
