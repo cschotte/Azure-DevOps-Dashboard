@@ -2,9 +2,9 @@
 	ViewData["Title"] = "Home";
 }
 
-<div id="error" class="alert alert-warning alert-dismissible" style="display: none" role="alert">
- <button type="button" class="close" data-dismiss="alert">&times;</button>
- <h4 class="alert-heading">Problem</h4>
+<div id="error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none">
+ <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+ <h4 class="alert-heading">Warning</h4>
  <p id="error-msg"></p>
 </div>
 
@@ -27,14 +27,14 @@
 
 <hr />
 
-<div class="row">
- <div class="col-12">
-  <blockquote class="blockquote">
-   <p class="mb-0">Do you need more data for reporting or like to automate something?</p>
-   <footer class="blockquote-footer">Use the <a href="~/api/data">/api/data</a> and <a href="~/api/status">/api/status</a> api's'.</footer>
-  </blockquote>
- </div>
-</div>
+<figure>
+ <blockquote class="blockquote">
+  <p>Do you need more data for reporting or like to automate something?</p>
+ </blockquote>
+ <figcaption class="blockquote-footer">
+  Use the <a href="~/api/data">/api/data</a> and <a href="~/api/status">/api/status</a> api's'.
+ </figcaption>
+</figure>
 
 @section Scripts {
 <script>
