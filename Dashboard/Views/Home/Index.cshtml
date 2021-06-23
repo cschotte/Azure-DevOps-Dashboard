@@ -8,22 +8,18 @@
  <p id="error-msg"></p>
 </div>
 
-<div class="row">
- <div class="col-12">
-  <h4 class="mb-3">Your Azure DevOps projects</h4>
-  <table id="projects" class="table table-striped display responsive">
-   <thead>
-	<tr>
-	 <th>Name</th>
-	 <th></th>
-	 <th>Process Template</th>
-	 <th>Age</th>
-	 <th></th>
-	</tr>
-   </thead>
-  </table>
- </div>
-</div>
+<h4>Your Azure DevOps projects</h4>
+<table id="projects" class="table table-striped display responsive">
+ <thead>
+  <tr>
+   <th>Name</th>
+   <th></th>
+   <th>Process Template</th>
+   <th>Age</th>
+   <th></th>
+  </tr>
+ </thead>
+</table>
 
 <hr />
 
@@ -93,7 +89,7 @@
 			]
 		});
 
-		// enable tooltips
+		// Enable tooltips
 		$('#projects').on('draw.dt', function () {
 			$('[data-toggle="tooltip"]').tooltip();
 		});
