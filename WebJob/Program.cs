@@ -15,8 +15,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Dashboard.Models;
 
 namespace Dashboard.WebJob
@@ -47,7 +47,7 @@ namespace Dashboard.WebJob
 
                 Console.WriteLine(status.Message);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 var status = new StatusModel { Error = true, Message = e.Message };
                 await SaveData("status.json", status);
@@ -80,12 +80,11 @@ namespace Dashboard.WebJob
 
             // When running on Azure we have a HOME
             var homepath = Environment.GetEnvironmentVariable("HOME");
-            
+
             if (!string.IsNullOrWhiteSpace(homepath))
                 filename = $"{homepath}{Path.DirectorySeparatorChar}{filename}";
 
-            await File.WriteAllTextAsync(filename,
-                JsonConvert.SerializeObject(data));
+            await File.WriteAllTextAsync(filename, JsonSerializer.Serialize(data));
         }
 
         private static async Task<List<DataModel>> GetDevOpsData()
@@ -94,74 +93,71 @@ namespace Dashboard.WebJob
 
             // Get projects
             // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list
-            var projects = await GetJsonAsync(
+            var projects = await GetJsonAsync<ProjectResponse>(
                 $"/_apis/projects?$top={max}&api-version=6.1-preview.4");
-            if (projects != null)
+            if (projects is not null)
             {
-                foreach (var project in projects.value)
+                foreach (var project in projects.Projects)
                 {
-                    Console.WriteLine($"Processing: {project.name}");
+                    Console.WriteLine($"Processing: {project.Name}");
 
                     var data = new DataModel
                     {
-                        ProjectId = project.id,
-                        Name = project.name,
-                        Description = project.description,
-                        Url = new Uri($"{_azDevOpsUri}/{project.name}"),
-                        LastProjectUpdateTime = project.lastUpdateTime
+                        ProjectId = project.Id,
+                        Name = project.Name,
+                        Description = project.Description,
+                        Url = new Uri($"{_azDevOpsUri}/{project.Name}"),
+                        LastProjectUpdateTime = project.LastUpdateTime
                     };
 
                     // Get projects properties
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/get%20project%20properties
-                    var properties = await GetJsonAsync(
-                        $"/_apis/projects/{project.id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template&api-version=6.1-preview.1");
-                    if (properties != null)
+                    var properties = await GetJsonAsync<PropertyResponse>(
+                        $"/_apis/projects/{project.Id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template&api-version=6.1-preview.1");
+                    if (properties is not null)
                     {
-                        foreach (var propertie in properties.value)
+                        foreach (var propertie in properties.Properties)
                         {
-                            if (propertie.name == "System.Process Template")
-                                data.ProcessTemplate = propertie.value;
+                            if (propertie.Name == "System.Process Template")
+                                data.ProcessTemplate = propertie.Value;
                         }
                     }
 
                     // Get last updated workitem id
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/wiql/query%20by%20wiql
-                    var items = await PostJsonAsync(
-                        $"/{project.id}/_apis/wit/wiql?$top=1&api-version=6.1-preview.2",
+                    var items = await PostJsonAsync<WorkItemQueryResponse>(
+                        $"/{project.Id}/_apis/wit/wiql?$top=1&api-version=6.1-preview.2",
                         "{ \"query\" : \"SELECT [System.Id] FROM workitems WHERE [System.WorkItemType] <> '' AND [System.State] <> '' AND [System.TeamProject] = @project ORDER BY [System.ChangedDate] DESC\" }");
-                    if (items != null)
+                    if (items is not null)
                     {
-                        foreach (var item in items.workItems)
+                        foreach (var item in items.WorkItems)
                         {
                             // Get workitem details
                             // https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/work%20items/get%20work%20item
-                            var workitem = await GetJsonAsync(
-                                $"/{project.id}/_apis/wit/workitems/{item.id}?api-version=6.1-preview.3");
-                            if (workitem != null)
+                            var workitem = await GetJsonAsync<WorkItemDetailResponse>(
+                                $"/{project.Id}/_apis/wit/workitems/{item.Id}?api-version=6.1-preview.3");
+                            if (workitem is not null)
                             {
-                                foreach (var field in workitem.fields)
-                                {
-                                    if (field.Name == "System.ChangedDate" && data.LastWorkItemDate < (DateTime)field.Value)
-                                        data.LastWorkItemDate = field.Value;
-                                }
+                                if (data.LastWorkItemDate < workitem.Fields.ChangedDate)
+                                    data.LastWorkItemDate = workitem.Fields.ChangedDate;
                             }
                         }
                     }
 
                     // Get project owners
-                    var owners = await PostJsonAsync(
+                    var owners = await PostJsonAsync<HierarchyQueryResponse>(
                         "/_apis/Contribution/HierarchyQuery?api-version=5.0-preview.1",
-                        "{ \"contributionIds\": [ \"ms.vss-admin-web.project-admin-overview-delay-load-data-provider\" ], \"dataProviderContext\": { \"properties\": { \"projectId\": \"" + project.id + "\" } } }");
-                    if (owners != null)
+                        "{ \"contributionIds\": [ \"ms.vss-admin-web.project-admin-overview-delay-load-data-provider\" ], \"dataProviderContext\": { \"properties\": { \"projectId\": \"" + project.Id + "\" } } }");
+                    if (owners is not null)
                     {
-                        foreach(var owner in owners["dataProviders"]["ms.vss-admin-web.project-admin-overview-delay-load-data-provider"]["projectAdmins"]["identities"])
+                        foreach (var identity in owners.DataProviders.MsVssAdminWeb.ProjectAdmins.Identities)
                         {
-                            if(owner.subjectKind == "user")
+                            if (identity.SubjectKind == "user")
                             {
-                                var admin = new UserModel
+                                var admin = new User
                                 {
-                                    DisplayName = owner.displayName,
-                                    MailAddress = owner.mailAddress
+                                    DisplayName = identity.DisplayName,
+                                    MailAddress = identity.MailAddress
                                 };
 
                                 data.Owners.Add(admin);
@@ -171,21 +167,21 @@ namespace Dashboard.WebJob
 
                     // Get repositories
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list
-                    var repositories = await GetJsonAsync(
-                        $"/{project.id}/_apis/git/repositories?api-version=6.1-preview.1");
-                    if (repositories != null)
+                    var repositories = await GetJsonAsync<RepositoryResponse>(
+                        $"/{project.Id}/_apis/git/repositories?api-version=6.1-preview.1");
+                    if (repositories is not null)
                     {
-                        foreach (var repositorie in repositories.value)
+                        foreach (var repository in repositories.Repositories)
                         {
                             // Get last commit
                             // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/commits/get%20commits
-                            var commits = await GetJsonAsync(
-                                $"/{project.id}/_apis/git/repositories/{repositorie.id}/commits?searchCriteria.$top=1&api-version=6.1-preview.1");
-                            if (commits != null)
+                            var commits = await GetJsonAsync<CommitResponse>(
+                                $"/{project.Id}/_apis/git/repositories/{repository.Id}/commits?searchCriteria.$top=1&api-version=6.1-preview.1");
+                            if (commits is not null)
                             {
-                                foreach (var commit in commits.value)
+                                foreach (var commit in commits.Commits)
                                 {
-                                    data.LastCommitDate = commit.committer.date;
+                                    data.LastCommitDate = commit.Committer.Date;
                                 }
                             }
                         }
@@ -198,7 +194,7 @@ namespace Dashboard.WebJob
             return db;
         }
 
-        private static async Task<dynamic> GetJsonAsync(string action)
+        private static async Task<T> GetJsonAsync<T>(string action)
         {
             using var response = await _httpClient.GetAsync(_azDevOpsUri + action);
 
@@ -209,14 +205,13 @@ namespace Dashboard.WebJob
             {
                 var result = await response.Content.ReadAsStringAsync();
 
-                return (dynamic)JsonConvert.DeserializeObject(result);
+                return JsonSerializer.Deserialize<T>(result);
             }
 
-            // If no results (or other Exception) we ignor and retrun null
-            return null;
+            return default;
         }
 
-        private static async Task<dynamic> PostJsonAsync(string action, string content)
+        private static async Task<T> PostJsonAsync<T>(string action, string content)
         {
             var data = new StringContent(content, Encoding.UTF8, "application/json");
 
@@ -229,11 +224,10 @@ namespace Dashboard.WebJob
             {
                 var result = await response.Content.ReadAsStringAsync();
 
-                return (dynamic)JsonConvert.DeserializeObject(result);
+                return JsonSerializer.Deserialize<T>(result);
             }
 
-            // If no results (or other Exception) we ignor and retrun null
-            return null;
+            return default;
         }
     }
 }

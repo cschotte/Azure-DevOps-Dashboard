@@ -7,7 +7,7 @@ namespace Dashboard.Models
     {
         public DataModel()
         {
-            Owners = new List<UserModel>();
+            Owners = new List<User>();
         }
 
         public Guid ProjectId { get; set; }
@@ -18,7 +18,7 @@ namespace Dashboard.Models
 
         public Uri Url { get; set; }
 
-        public List<UserModel> Owners { get; set; }
+        public List<User> Owners { get; set; }
 
         public string ProcessTemplate { get; set; }
 
@@ -47,5 +47,12 @@ namespace Dashboard.Models
                 return (DateTime.Now - LastKnownActivity).TotalDays;
             }
         }
+    }
+
+    public class User
+    {
+        public string DisplayName { get; set; }
+
+        public string MailAddress { get; set; }
     }
 }
