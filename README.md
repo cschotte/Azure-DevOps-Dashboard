@@ -50,7 +50,7 @@ az group create -l westeurope -n rg-azdevops
 ```cmd
 az appservice plan create -g rg-azdevops -n plan-azdevops -l westeurope
 
-az webapp create -g rg-azdevops -p plan-azdevops -n azdevops -r "DOTNET|5.0"
+az webapp create -g rg-azdevops -p plan-azdevops -n azdevops -r "DOTNET|6.0"
 ```
 
 5. Add your Azure DevOps URL and personal access token (PAT)
@@ -86,8 +86,8 @@ You can also run the WebJob locally, set the following two environment variable 
 and `azDevOpsPat` that corresponds with your Azure DevOps organization account:
 
 ```cmd
-SET azDevOpsPat=tjqp44k54nqfmppaqd7di27kpvh...........
-SET azDevOpsUri=https://dev.azure.com/yourorgname.....
+SET azDevOpsPat=<your token>
+SET azDevOpsUri=https://dev.azure.com/<yourorgname>
 ```
 
 ## Using the API
