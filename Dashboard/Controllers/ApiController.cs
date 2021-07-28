@@ -41,8 +41,10 @@ namespace Dashboard.Controllers
 
                 return JsonSerializer.Deserialize<List<DataModel>>(result);
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.Log(LogLevel.Error, ex.Message);
+
                 return new List<DataModel>();
             }
         }
@@ -57,8 +59,10 @@ namespace Dashboard.Controllers
 
                 return JsonSerializer.Deserialize<StatusModel>(result);
             }
-            catch
+            catch(Exception ex)
             {
+                _logger.Log(LogLevel.Error, ex.Message);
+
                 return new StatusModel
                 {
                     Error = true,
@@ -69,19 +73,12 @@ namespace Dashboard.Controllers
 
         private static async Task<string> ReadDataAsync(string filename)
         {
-            try
-            {
-                var homepath = Environment.GetEnvironmentVariable("HOME");
+            var homepath = Environment.GetEnvironmentVariable("HOME");
 
-                if (!string.IsNullOrWhiteSpace(homepath))
-                    filename = $"{homepath}{Path.DirectorySeparatorChar}{filename}";
+            if (!string.IsNullOrWhiteSpace(homepath))
+                filename = $"{homepath}{Path.DirectorySeparatorChar}{filename}";
 
-                return await System.IO.File.ReadAllTextAsync(filename);
-            }
-            catch
-            {
-                return null;
-            }
+            return await System.IO.File.ReadAllTextAsync(filename);
         }
 
     }
