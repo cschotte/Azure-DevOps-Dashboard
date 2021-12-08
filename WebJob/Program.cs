@@ -66,9 +66,7 @@ namespace Dashboard.WebJob
             // remove last '/' if any
             _azDevOpsUri = _azDevOpsUri.TrimEnd(new[] { '/' });
 
-            var authentication = Convert.ToBase64String(
-                ASCIIEncoding.ASCII.GetBytes(
-                    string.Format($"{string.Empty}:{_azDevOpsPat}")));
+            var authentication = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{string.Empty}:{_azDevOpsPat}"));
 
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authentication);
@@ -95,6 +93,7 @@ namespace Dashboard.WebJob
             // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list
             var projects = await GetJsonAsync<ProjectResponse>(
                 $"/_apis/projects?$top={max}&api-version=6.1-preview.4");
+
             if (projects is not null)
             {
                 foreach (var project in projects.Projects)
@@ -114,6 +113,7 @@ namespace Dashboard.WebJob
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/get%20project%20properties
                     var properties = await GetJsonAsync<PropertyResponse>(
                         $"/_apis/projects/{project.Id}/properties?keys=System.CurrentProcessTemplateId,System.Process%20Template&api-version=6.1-preview.1");
+
                     if (properties is not null)
                     {
                         foreach (var propertie in properties.Properties)
@@ -128,6 +128,7 @@ namespace Dashboard.WebJob
                     var items = await PostJsonAsync<WorkItemQueryResponse>(
                         $"/{project.Id}/_apis/wit/wiql?$top=1&api-version=6.1-preview.2",
                         "{ \"query\" : \"SELECT [System.Id] FROM workitems WHERE [System.WorkItemType] <> '' AND [System.State] <> '' AND [System.TeamProject] = @project ORDER BY [System.ChangedDate] DESC\" }");
+
                     if (items is not null)
                     {
                         foreach (var item in items.WorkItems)
@@ -148,6 +149,7 @@ namespace Dashboard.WebJob
                     var owners = await PostJsonAsync<HierarchyQueryResponse>(
                         "/_apis/Contribution/HierarchyQuery?api-version=5.0-preview.1",
                         "{ \"contributionIds\": [ \"ms.vss-admin-web.project-admin-overview-delay-load-data-provider\" ], \"dataProviderContext\": { \"properties\": { \"projectId\": \"" + project.Id + "\" } } }");
+
                     if (owners is not null)
                     {
                         foreach (var identity in owners.DataProviders.MsVssAdminWeb.ProjectAdmins.Identities)
@@ -169,6 +171,7 @@ namespace Dashboard.WebJob
                     // https://docs.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list
                     var repositories = await GetJsonAsync<RepositoryResponse>(
                         $"/{project.Id}/_apis/git/repositories?api-version=6.1-preview.1");
+
                     if (repositories is not null)
                     {
                         foreach (var repository in repositories.Repositories)
