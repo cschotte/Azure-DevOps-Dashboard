@@ -50,7 +50,7 @@ az group create -l westeurope -n rg-azdevops
 ```cmd
 az appservice plan create -g rg-azdevops -n plan-azdevops -l westeurope
 
-az webapp create -g rg-azdevops -p plan-azdevops -n azdevops -r "DOTNET|6.0"
+az webapp create -g rg-azdevops -p plan-azdevops -n azdevops -r "dotnet:7"
 ```
 
 5. Add your Azure DevOps URL and personal access token (PAT)
